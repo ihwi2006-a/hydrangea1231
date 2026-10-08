@@ -62,7 +62,12 @@ export interface Backend {
   signUp(id: string, password: string, nickname: string, inviteCode?: string): Promise<{ ok: boolean; error?: string }>;
   signOut(): Promise<void>;
   resetPassword(email: string): Promise<{ ok: boolean; error?: string }>;
-  updateProfile(patch: { nickname?: string; avatarUrl?: string | null; avatarColor?: string | null }): Promise<{ ok: boolean; error?: string }>;
+  /** 내 정보 수정 — 닉네임·프로필 사진·색, 그리고 비밀번호(현재 비밀번호 확인 뒤 새 비밀번호).
+   *  비밀번호 항목은 여태 타입에 없어 서버 모드에서 **조용히 무시되고 「변경되었습니다」만 떴다** (커플홈 사용자 제보 — "비밀번호가 변경이 안 된다") */
+  updateProfile(patch: {
+    nickname?: string; avatarUrl?: string | null; avatarColor?: string | null;
+    currentPassword?: string; newPassword?: string;
+  }): Promise<{ ok: boolean; error?: string }>;
   /** 첫 계정을 이 홈의 관리자로 등록 (관리자가 아직 없을 때만) */
   claimOwner(): Promise<{ ok: boolean; error?: string }>;
   /** 가입 회원 목록 — 역극 참여자 선택·회원 관리 화면용.
@@ -84,6 +89,8 @@ export interface Backend {
 
   /* ---- 목록(콘텐츠) ---- */
   fetchList<T extends ListItem>(coll: string): Promise<T[]>;
+  /** 문서 한 건 (커플홈 — RP LOG 본문처럼 큰 문서가 모인 컬렉션은 목록 통째로 받으면 느리다). 없거나 읽을 권한이 없으면 null */
+  fetchOne<T extends ListItem>(coll: string, id: string): Promise<T | null>;
   syncList<T extends ListItem>(coll: string, prev: T[], next: T[], uid: string | null): Promise<void>;
   /** 이미 저장된 행의 공개범위만 다시 계산해 덮어쓴다 (v2.0) — 메뉴를 비공개로 바꾼 뒤
    *  「글에도 적용」을 누르면 돈다. 내용(data)·순서(sort)는 건드리지 않는다. */
